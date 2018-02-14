@@ -13,7 +13,7 @@ try
     switch(A) %% use this when you want to have different situations; for example: testing the code in the behav lab, fMRI or personal computer
         case 1
             disp ('AL Cretu running the code');
-            pname = '/Users/acretu/Documents/PhD/Experiments/AO reward';
+            pname = '/Users/acretu/Documents/PhD/Experiments/AO reward/';
         case 2
             disp ('Guest running the code')
             [fname,pname] = uigetfile('*.png','Select the two pictures ', 'MultiSelect', 'on'); %uigetfile will open dialogue box entitled 'Select Excel files' and displays only .xlsx files
@@ -24,7 +24,7 @@ try
     
     %% some variables
     test = input('Screen size (1 = small; 2 = fullscreen): '); %% this just indicates which screen size to use: test=1 ->> small screen size used for testing; test=2 ->> normal size screen
-    Trials = 32; %% to make things easier, we predefine the nr of Trialss
+    Trials = 100; %% to make things easier, we predefine the nr of Trialss
     %% seed random number generator
     rng('shuffle');
     %% Enter partipant number %%%
@@ -87,7 +87,7 @@ try
     [centreX, centreY] = RectCenter(windowRect);  
     
     %% define order of the picture stimuli
-    order = [1*ones((Trials/4),1); 2*ones((Trials/4),1);3*ones((Trials/8),1); 4*ones((Trials/8),1); 5*ones((Trials/8),1); 6*ones((Trials/8),1)]; %% PG
+    order = [1*ones((Trials/5),1); 2*ones((Trials/5),1);3*ones((Trials/10),1); 4*ones((Trials/10),1); 5*ones((Trials/5),1); 6*ones((Trials/5),1); 7*ones((Trials/10),1); 8*ones((Trials/10),1)]; %% PG
     pictureOrder = order(randperm(length(order)));
     %%%% Conditions %%%
     %     1 = high PG correct: white cue + high reward
@@ -100,9 +100,8 @@ try
     %     8 = low PG error: blue cue + low reward
     %% define colors and color cue order
     white = WhiteIndex(win);
-    gray =GrayIndex(win);
     blue = [15 75 256];
-    colors = {white;blue;white;blue;gray;gray}; %following the order of moviename from below; with red in between: this is just because I didn't want to use conditions 1,2,3,4.. and preferred to have 1,2 = correct and 10,20=error
+    colors = {white;blue;white;blue;white;blue;white;blue}; %following the order of pictureOrder from above;
     centeredRect = CenterRectOnPointd([0 0 536 576], centreX, centreY);%% size of the colored cue
     RectFeedback= CenterRectOnPointd([0 0 200 200], centreX-feedback_X, feedback_Y); %size of feedback: thumbs up/down
     
@@ -131,6 +130,8 @@ try
     Stim_pic{4,1}= imread([pname 'PG_end.png']);
     Stim_pic{5,1}= imread([pname 'PG_end.png']);
     Stim_pic{6,1}= imread([pname 'WHG_end.png']);
+    Stim_pic{7,1}= imread([pname 'WHG_end.png']);
+    Stim_pic{8,1}= imread([pname 'PG_end.png']);
     Response_correct=imread([pname 'Correct.png']);
     Response_error=imread([ pname 'Error.png']);
     instruction= imread([pname 'Instruction.png']);
@@ -146,7 +147,7 @@ try
     Screen('FillRect', win, black);
     HideCursor;
     %set default screen font and size for written messages
-    Screen('TextSize', win, 24);
+    Screen('TextSize', win, 36);
     Screen('TextFont', win, 'Calibri');
     % Maximum priority level
     topPriorityLevel = MaxPriority(win);
@@ -251,6 +252,11 @@ try
             elseif TrialState == 2 %% cue presentation
                 color=colors{pictureOrder(ii),1};
                 Screen('FillRect', win, color, centeredRect)
+                if pictureOrder(ii)<5
+                DrawFormattedText( win, '2','center', 'center', [100, 130, 150]);
+                else
+                DrawFormattedText( win, '2','center', 'center', [100, 130, 150]);
+                end
             elseif TrialState ==3 %% picture presentation
                 Texture_final = Screen('MakeTexture', win, Stim_pic{pictureOrder(ii)});
                 thisContrast = amplitude * sin(angFreq * time + startPhase) + amplitude;
