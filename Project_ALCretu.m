@@ -14,6 +14,7 @@ try
         case 1
             disp ('AL Cretu running the code');
             pname = '/Users/acretu/Documents/PhD/Experiments/AO-reward/';
+            path_video='/Users/acretu/Documents/PhD/VideosToon/';
         case 2
             disp ('Guest running the code')
             [fname,pname] = uigetfile('*.png','Select the two pictures ', 'MultiSelect', 'on'); %uigetfile will open dialogue box entitled 'Select Excel files' and displays only .xlsx files
@@ -98,6 +99,16 @@ try
     %     6 = low WHG correct: blue cue + low reward
     %     7 = low WHG error: white cue + low reward
     %     8 = low PG error: blue cue + low reward
+    
+    %% videos
+    moviename{1,1} = [path_video 'precisionGrip2.avi'];
+    moviename{2,1} = [path_video 'powerGrip2.avi'];
+    moviename{3,1} = [path_video 'powerGrip2.avi'];
+    moviename{4,1} = [path_video 'precisionGrip2.avi'];
+    moviename{5,1} = [path_video 'precisionGrip2.avi'];
+    moviename{6,1} = [path_video 'powerGrip2.avi'];
+    moviename{7,1} = [path_video 'powerGrip2.avi'];
+    moviename{8,1} = [path_video 'precisionGrip2.avi'];
     %% define colors and color cue order
     white = WhiteIndex(win);
     blue = [15 75 256];
@@ -204,6 +215,7 @@ try
         TrialStartTime = GetSecs();
         answer=0;
         response = false;
+        videoStarted = false;
         if TrialState ~= 1
             TrialNr = TrialNr + 1; %% we record this trial number and we want it to start at 1 when the first cue appears on screen
             ii = ii + 1;
@@ -219,7 +231,7 @@ try
             % we only use Screen('Flip') once at the end 
             % this loop will run at the frequency of the refresh rate so it should accurately record button presses
             if ii > length(pictureOrder) %% if ii > maximum number of trials go directly to state 5 (which is our final fixation cross)
-                TrialState = 5;
+                TrialState = 6;
             end
             
             % Check the keyboard to see if a button has been pressed
@@ -231,7 +243,7 @@ try
             end
             
             % check for response to question
-            if TrialState==3 && response==false
+            if TrialState==4 && response==false
                 if keyCode(PGKey) && (pictureOrder(ii)==1 || pictureOrder(ii)==4 || pictureOrder(ii)==5 || pictureOrder(ii)==8)
                     answer = 1;  % record response in .dat file : 1=correct; 2=error
                     response = true;
@@ -257,7 +269,9 @@ try
                 else
                 DrawFormattedText( win, '10','center', 'center', black);
                 end
-            elseif TrialState ==3 %% picture presentation
+            elseif TrialState == 3 %% video presentation
+                [movie,duration,fps,width,height,count,aspectRatio] = Screen('OpenMovie', win, moviename{pictureOrder(ii)});
+            elseif TrialState ==4 %% picture presentation
                 Texture_final = Screen('MakeTexture', win, Stim_pic{pictureOrder(ii)});
                 thisContrast = amplitude * sin(angFreq * time + startPhase) + amplitude;
                 Screen('DrawTextures', win, Texture_final, [],[],0,[],thisContrast)
@@ -271,9 +285,9 @@ try
                     Screen('DrawTextures', win, Texture_resp, [],RectFeedback)
                 end
                 
-            elseif TrialState == 4 %% fixation cross
+            elseif TrialState == 5 %% fixation cross
                 Screen('DrawLines', win, allCoords,lineWidthPix, white, [centreX centreY], 2);
-            elseif TrialState==5
+            elseif TrialState==6
                 Screen('DrawLines', win, allCoords,lineWidthPix, white, [centreX centreY], 2);
                 DrawFormattedText( win, '< End of Experiment >','center', 250, [100, 130, 150]);
             end
@@ -286,14 +300,47 @@ try
             elseif TrialState == 2 && (GetSecs()-startnewTrials>jitterCue(ii))%%show the cue on the screen for a jittered duration previously defined
                 CueTime = GetSecs();
                 TrialState = 3;
-            elseif TrialState == 3  && GetSecs() - CueTime >3 %%show the picture on the screen for 3 seconds
+            elseif TrialState == 3
+                if videoStarted == false
+                    videoStarted = true;
+                    % Start playback engine:
+                    Screen('PlayMovie', movie, 2);
+                    startVideo = GetSecs;
+                end
+                
+                % Wait for next movie frame, retrieve texture handle to it
+                tex = Screen('GetMovieImage', win, movie);
+                
+                if tex > 0
+                    movieCounter= movieCounter+1 ;%%nr of frames: PG=130 and WHG=128 :-/
+                    % Draw the new texture immediately to screen:
+                    Screen('DrawTexture', win, tex)
+                   % DrawFormattedText( win, num2str(movieCounter),'center', 'center', [100, 130, 150]); %%from 180-240 nr of frames
+                    % Update display:
+                    if movieCounter<51
+                        videoStage=1;
+                    elseif movieCounter>=51
+                       % WaitSecs();
+                        videoStage=2;
+                    end
+                    % Release texture:
+                else
+                    movieCounter=0;
+                    % Stop playback:
+                    Screen('PlayMovie', movie, 0);
+                    % Close movie:
+                    Screen('CloseMovie', movie);
+                    VideoTime= GetSecs();
+                    trialState = 5;
+                end
+            elseif TrialState == 4  && GetSecs() - CueTime >3 %%show the picture on the screen for 3 seconds
                 ResponseStartTime = GetSecs();
-                TrialState = 4;
-            elseif TrialState == 4 && (GetSecs()-ResponseStartTime>jitterBreak(ii))%%show the fixation cross on the screen for a jittered duration previously defined
+                TrialState = 5;
+            elseif TrialState == 5 && (GetSecs()-ResponseStartTime>jitterBreak(ii))%%show the fixation cross on the screen for a jittered duration previously defined
                 startnewTrials=GetSecs();
-                TrialState = 2;
+                TrialState = 6;
                 break;
-            elseif TrialState==5 && (GetSecs()-experimentStartTime >200) %%total duration of the experiment
+            elseif TrialState==6 && (GetSecs()-experimentStartTime >200) %%total duration of the experiment
                 exitExperiment = true;
                 break;
             end
