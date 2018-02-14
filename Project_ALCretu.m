@@ -13,7 +13,7 @@ try
     switch(A) %% use this when you want to have different situations; for example: testing the code in the behav lab, fMRI or personal computer
         case 1
             disp ('AL Cretu running the code');
-            pname = '/Users/acretu/Documents/PhD/Experiments/AO reward/';
+            pname = '/Users/acretu/Documents/PhD/Experiments/AO-reward/';
         case 2
             disp ('Guest running the code')
             [fname,pname] = uigetfile('*.png','Select the two pictures ', 'MultiSelect', 'on'); %uigetfile will open dialogue box entitled 'Select Excel files' and displays only .xlsx files
@@ -147,7 +147,7 @@ try
     Screen('FillRect', win, black);
     HideCursor;
     %set default screen font and size for written messages
-    Screen('TextSize', win, 36);
+    Screen('TextSize', win, 40);
     Screen('TextFont', win, 'Calibri');
     % Maximum priority level
     topPriorityLevel = MaxPriority(win);
@@ -232,10 +232,10 @@ try
             
             % check for response to question
             if TrialState==3 && response==false
-                if keyCode(PGKey) && (pictureOrder(ii)==1 || pictureOrder(ii)==4 || pictureOrder(ii)==5)
+                if keyCode(PGKey) && (pictureOrder(ii)==1 || pictureOrder(ii)==4 || pictureOrder(ii)==5 || pictureOrder(ii)==8)
                     answer = 1;  % record response in .dat file : 1=correct; 2=error
                     response = true;
-                elseif keyCode(WHGKey) && (pictureOrder(ii)==2 || pictureOrder(ii)==3 || pictureOrder(ii)==6)
+                elseif keyCode(WHGKey) && (pictureOrder(ii)==2 || pictureOrder(ii)==3 || pictureOrder(ii)==6 || pictureOrder(ii)==7)
                     answer = 1;
                     response = true;
                 elseif keyCode(WHGKey) || keyCode(PGKey)
@@ -253,9 +253,9 @@ try
                 color=colors{pictureOrder(ii),1};
                 Screen('FillRect', win, color, centeredRect)
                 if pictureOrder(ii)<5
-                DrawFormattedText( win, '2','center', 'center', [100, 130, 150]);
+                DrawFormattedText( win, '2','center', 'center', black);
                 else
-                DrawFormattedText( win, '2','center', 'center', [100, 130, 150]);
+                DrawFormattedText( win, '10','center', 'center', black);
                 end
             elseif TrialState ==3 %% picture presentation
                 Texture_final = Screen('MakeTexture', win, Stim_pic{pictureOrder(ii)});
